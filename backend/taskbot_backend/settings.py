@@ -21,6 +21,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_framework',
+    'apps.users',
+    'apps.tasks',
+    'apps.labels'
 ]
 
 MIDDLEWARE = [
@@ -84,7 +89,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Adak'
 
 USE_I18N = True
 
