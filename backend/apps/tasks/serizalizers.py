@@ -8,7 +8,7 @@ class TaskSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
         many=True,
         required=False,
-        queryset=Category.objects.none()
+        queryset=Category.objects.all()
     )
 
     class Meta:

@@ -24,11 +24,13 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'apps.users',
-    'apps.tasks',
-    'apps.categories'
+    'apps.categories',
+    
+    'apps.tasks.apps.TasksConfig'
 ]
 
 AUTH_USER_MODEL = "users.User"
+BOT_API_SECRET = os.getenv("BOT_API_SECRET", "")
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -91,7 +93,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'America/Adak'
+TIME_ZONE = "America/Adak"
 
 USE_I18N = True
 
@@ -101,3 +103,10 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/1")
+CELERY_TIMEZONE = "America/Adak"
+CELERY_ENABLE_UTC = True
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
