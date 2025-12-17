@@ -25,8 +25,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'apps.users',
     'apps.tasks',
-    'apps.labels'
+    'apps.categories'
 ]
+
+AUTH_USER_MODEL = "users.User"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -38,7 +40,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'backend.taskbot_backend.urls'
+ROOT_URLCONF = 'taskbot_backend.urls'
 
 TEMPLATES = [
     {
