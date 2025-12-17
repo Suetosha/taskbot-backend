@@ -5,11 +5,19 @@ class BaseModel(models.Model):
     id = models.CharField(
         primary_key=True,
         max_length=26,
-        editable=False
+        editable=False,
+        verbose_name='id'
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Создано'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Обновлено'
+        )
+
 
     def save(self, *args, **kwargs):
         if not self.id:
