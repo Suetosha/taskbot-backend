@@ -3,11 +3,12 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Task
 from .serizalizers import TaskSerializer
-
+from ..common.authentication import BotTelegramAuthentication
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     permission_classes = (IsAuthenticated,)
+    authentication_classes = (BotTelegramAuthentication,)
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user).order_by("-created_at")
