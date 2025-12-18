@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import json
-import urllib.request
+import requests
 
 from celery import shared_task
 from django.conf import settings
@@ -11,26 +10,14 @@ from .models import Task
 
 # Процесс отправления таски в бот
 def _telegram_send_message(chat_id: int, text: str) -> None:
-    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    token = settings.TELEGRAM_BOT_TOKEN
+    url = f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={text}"
 
-    if not token:
-        raise RuntimeError("TELEGRAM_BOT_TOKEN не задан в settings")
-
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = {"chat_id": chat_id, "text": text}
-
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        body = resp.read().decode("utf-8")
-        if resp.status >= 400:
-            raise RuntimeError(f"Telegram API ошибка {resp.status}: {body}")
+    try:
+        response = requests.post(url, timeout=10)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"Telegram API ошибка: {e}")
 
 
 # Проверяет данные и отправляет уведомление пользователю
@@ -51,11 +38,14 @@ def notify_task_due(task_id: int) -> str:
         return "У пользователя не указан telegram_id"
 
     chat_id = int(task.user.telegram_id)
+    categories = task.categories.all()
+    categories_text = ", ".join(c.name for c in categories)
 
     text = (
-        "Напоминание о задаче:\n"
-        f"{task.title}\n"
-        f"{task.description}\n"
+        "Напоминание о задаче:\n\n"
+        f"Название: {task.title}\n"
+        f"Описание: {task.description}\n"
+        f"Категории: {categories_text}\n"
         f"Срок: {timezone.localtime(task.due_at).strftime('%d.%m.%Y %H:%M')}"
     )
     try:

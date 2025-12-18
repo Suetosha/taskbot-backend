@@ -4,8 +4,9 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 
+from keyboards.cancel_keyboard import get_cancel_keyboard
 from utils.formatters import render_task
 
 from utils.time_utils import datetime_to_iso, parse_user_datetime
@@ -39,13 +40,16 @@ async def cmd_tasks(message: Message, api) -> None:
 @router.message(Command("add"))
 async def cmd_add(message: Message, state: FSMContext) -> None:
     await state.set_state(AddTask.title)
-    await message.answer("Введите заголовок задачи (или /cancel чтобы отменить):")
+    await message.answer(
+        "Введите заголовок задачи:",
+        reply_markup = get_cancel_keyboard()
+        )
 
 
-@router.message(Command("cancel"))
-async def cmd_cancel(message: Message, state: FSMContext) -> None:
+@router.message(F.text == "Отменить заполнение")
+async def btn_cancel(message: Message, state: FSMContext) -> None:
     await state.clear()
-    await message.answer("Заполнение задачи отменено")
+    await message.answer("Заполнение задачи отменено", reply_markup=ReplyKeyboardRemove())
 
 
 @router.message(AddTask.title, F.text)
@@ -57,7 +61,7 @@ async def add_title(message: Message, state: FSMContext) -> None:
 
     await state.update_data(title=title)
     await state.set_state(AddTask.description)
-    await message.answer("Введите описание (или '-' чтобы пропустить):")
+    await message.answer("Введите описание:")
 
 
 @router.message(AddTask.description, F.text)
@@ -69,7 +73,6 @@ async def add_description(message: Message, state: FSMContext) -> None:
     await state.set_state(AddTask.due_at)
     await message.answer(
         "Введите срок в формате ДД.ММ.ГГГГ ЧЧ:ММ (например 20.12.2025 18:30)\n"
-        "или '-' чтобы без срока.\n"
     )
 
 
@@ -84,7 +87,7 @@ async def add_due_at(message: Message, state: FSMContext) -> None:
 
     await state.update_data(due_at=due_at_iso)
     await state.set_state(AddTask.categories)
-    await message.answer("Введите категории через запятую (или '-' чтобы без категорий):")
+    await message.answer("Введите категории через запятую:")
 
 
 @router.message(AddTask.categories, F.text)
@@ -119,9 +122,12 @@ async def add_categories(message: Message, state: FSMContext, api) -> None:
 
     await state.clear()
     await message.answer(
-        "Задача создана.\n"
-        f"Заголовок: {task.get('title')}\n"
-        f"Создано: {datetime_to_iso(task.get('created_at'))}\n"
-        f"Срок: {datetime_to_iso(task.get('due_at'))}\n\n"
-        "Посмотреть список: /tasks"
+        "<b>Задача создана!</b>\n\n"
+        f"<b>Категория:</b> {raw}\n"
+        f"<b>Заголовок:</b> {task.get('title')}\n"
+        f"<b>Создано:</b> {datetime_to_iso(task.get('created_at'))}\n"
+        f"<b>Срок:</b> {datetime_to_iso(task.get('due_at'))}\n\n"
+        "Посмотреть список: /tasks",
+        reply_markup=ReplyKeyboardRemove(),
+        parse_mode='HTML'
     )
