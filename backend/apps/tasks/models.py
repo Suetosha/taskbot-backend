@@ -33,6 +33,13 @@ class Task(BaseModel):
         verbose_name="Срок"
     )
 
+    celery_task_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        default=None
+        )
+
     is_completed = models.BooleanField(
         default=False,
         verbose_name="Выполнено"

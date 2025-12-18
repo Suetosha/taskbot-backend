@@ -35,7 +35,7 @@ def _telegram_send_message(chat_id: int, text: str) -> None:
 
 # Проверяет данные и отправляет уведомление пользователю
 @shared_task
-def notify_task_due(task_id: str) -> str:
+def notify_task_due(task_id: int) -> str:
     try:
         task = Task.objects.select_related("user").get(pk=task_id)
     except Task.DoesNotExist:
@@ -58,7 +58,10 @@ def notify_task_due(task_id: str) -> str:
         f"{task.description}\n"
         f"Срок: {timezone.localtime(task.due_at).strftime('%d.%m.%Y %H:%M')}"
     )
-    _telegram_send_message(chat_id=chat_id, text=text)
+    try:
+        _telegram_send_message(chat_id=chat_id, text=text)
+    except Exception as e:
+        return f"Ошибка отправки: {str(e)}"
 
     task.is_completed = True
     task.save(update_fields=["is_completed"])
