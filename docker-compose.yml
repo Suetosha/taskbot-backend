@@ -1,0 +1,73 @@
+services:
+  django:
+    build: .
+    container_name: django_app
+    command: >
+      sh -c "python backend/manage.py migrate &&
+             python backend/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend_network
+    ports:
+      - "8000:8000"
+
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend_network
+
+  redis:
+    image: redis:7
+    container_name: redis
+    networks:
+      - backend_network
+
+  celery:
+    build: .
+    container_name: celery_worker
+    working_dir: /app/backend
+    command: celery -A taskbot_backend worker --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - django
+      - redis
+    networks:
+      - backend_network
+
+  telegram_bot:
+    build: .
+    container_name: telegram_bot
+    command: python bot/bot.py
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - django
+      - redis
+    networks:
+      - backend_network
+
+volumes:
+  postgres_data:
+
+networks:
+  backend_network:
+    driver: bridge
+
